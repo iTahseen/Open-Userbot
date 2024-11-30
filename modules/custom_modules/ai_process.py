@@ -64,9 +64,9 @@ async def process_file(message, prompt, status_msg):
         if os.path.exists(file_path):
             os.remove(file_path)
 
-@Client.on_message(filters.command("process", prefix) & filters.me)
+@Client.on_message(filters.command(["process", "pr"], prefix) & filters.me)
 async def process_generic_file(_, message):
-    prompt = message.text.split(maxsplit=1)[1] if len(message.command) > 1 else "Analyze this file."
+    prompt = message.text.split(maxsplit=1)[1] if len(message.command) > 1 else "Deeply analyze it, write complete details about it."
     await process_file(message, prompt, "Processing file...")
 
 modules_help["aimage"] = {
