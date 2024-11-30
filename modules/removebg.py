@@ -1,12 +1,3 @@
-# Copyright (C) 2020-2021 by DevsExpo@Github, < https://github.com/DevsExpo >.
-#
-# This file is part of < https://github.com/DevsExpo/FridayUserBot > project,
-# and is released under the "GNU v3.0 License Agreement".
-# Please see < https://github.com/DevsExpo/blob/master/LICENSE >
-#
-# All rights reserved.
-# Modifed by @moonuserbot
-
 import io
 import os
 from datetime import datetime
@@ -91,7 +82,7 @@ def _check_rmbg(func):
     return check_rmbg
 
 
-@Client.on_message(filters.command("rmbg", prefix) & filters.me)
+@Client.on_message(filters.command("rbg", prefix) & filters.me)
 @_check_rmbg
 async def rmbg(client: Client, message: Message):
     pablo = await edit_or_reply(message, "<code>Processing...</code>")
@@ -121,25 +112,25 @@ async def rmbg(client: Client, message: Message):
     contentType = output_file_name.headers.get("content-type")
     if "image" in contentType:
         with io.BytesIO(output_file_name.content) as remove_bg_image:
-            remove_bg_image.name = "BG_rem.png"
+            remove_bg_image.name = "bg_removed.png"
             await client.send_document(
                 message.chat.id, remove_bg_image, reply_to_message_id=message.id
             )
         end = datetime.now()
         ms = (end - start).seconds
         await pablo.edit(
-            f"<code>Removed image's Background in {ms} seconds, powered by </code> <b>@moonuserbot</b>"
+            f"<code>Removed image's Background in {ms} seconds.</code>"
         )
         if os.path.exists("BG_rem.png"):
             os.remove("BG_rem.png")
     else:
         await pablo.edit(
-            "ReMove.BG API returned Errors. Please report to @moonub_chat"
+            "Remove.bg API returned Errors."
             + f"\n`{output_file_name.content.decode('UTF-8')}"
         )
 
 
-@Client.on_message(filters.command("rebg", prefix) & filters.me)
+@Client.on_message(filters.command("rmbg", prefix) & filters.me)
 async def rembg(client: Client, message: Message):
     await message.edit("<code>Processing...</code>")
     chat_id = message.chat.id
@@ -172,6 +163,6 @@ async def rembg(client: Client, message: Message):
 
 
 modules_help["removebg"] = {
-    "rebg [reply to image]*": "reemove background from image without transparency",
-    "rmbg [reply to image]*": "remove background from image with transparency",
+    "rmbg [reply to image]*": "reemove background from image without transparency",
+    "rbg [reply to image]*": "remove background from image with transparency",
 }
