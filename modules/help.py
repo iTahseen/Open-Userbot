@@ -25,7 +25,7 @@ async def send_page(message, module_list, page, total_pages):
     start_index = (page - 1) * 10
     end_index = start_index + 10
     page_modules = module_list[start_index:end_index]
-    text = f"<b>Help for <a href=https://t.me/Moonub_chat>Moon-Userbot</a></b>\n"
+    text = f"<b>Help for <a href=https://t.me/xwvux>Open-Userbot</a></b>\n"
     text += f"For more help on how to use a command, type <code>{prefix}help [module]</code>\n\n"
     text += f"Page {page}/{total_pages}\n\n"
     for module_name in page_modules:
