@@ -68,7 +68,7 @@ async def transcribe(_, message):
     prompt = message.text.split(maxsplit=1)[1] if len(message.command) > 1 else "Transcribe this audio clip."
     await process_file(message, prompt, model, "audio", "Transcribing audio...", len(message.command) > 1)
 
-modules_help["aimage"] = {
+modules_help["generative"] = {
     "getai [custom prompt] [reply to image]*": "Analyze an image using AI.",
     "aicook [reply to image]*": "Identify food and generate cooking instructions.",
     "aiseller [target audience] [reply to image]*": "Generate marketing descriptions for products.",
