@@ -144,28 +144,31 @@ async def imgflux_(client: Client, message: Message):
     try:
         current_model = db.get("custom.hf", "current_model", None)
         models = db.get("custom.hf", "models", [])
-        if current_model == "all":
-            models.append("all")
-
         models_to_use = models if current_model == "all" else [current_model]
+
         generated_images = []
 
         for model in models_to_use:
             db.set("custom.hf", "current_model", model)
             payload = {"inputs": prompt}
-            image_bytes, fetch_time = await query_huggingface(payload)  # Pass only the payload
+            image_bytes, fetch_time = await query_huggingface(payload)
             if not image_bytes:
+                logger.warning(f"Failed to fetch image for model: {model}")
                 continue
 
             image_path = f"hf_flux_gen_{model.replace('/', '_')}.jpg"
             await save_image(image_bytes, image_path)
-            generated_images.append((image_path, fetch_time))
+            generated_images.append((image_path, model, fetch_time))
 
         if not generated_images:
             return await processing_message.edit_text("Failed to generate an image for all models.")
 
-        for image_path, fetch_time in generated_images:
-            caption = f"**Model:**\n> {model} \n**Prompt used:**\n> {prompt}\n\n**Fetching Time:** {fetch_time} ms"
+        for image_path, model_name, fetch_time in generated_images:
+            caption = (
+                f"**Model:**\n> {model_name}\n"
+                f"**Prompt used:**\n> {prompt}\n\n"
+                f"**Fetching Time:** {fetch_time} ms"
+            )
             await message.reply_photo(image_path, caption=caption, parse_mode=enums.ParseMode.MARKDOWN)
             os.remove(image_path)
 
