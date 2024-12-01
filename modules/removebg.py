@@ -94,7 +94,7 @@ async def rmbg(client: Client, message: Message):
         await pablo.edit("<code>Reply to a valid media first.</code>")
         return
     start = datetime.now()
-    await pablo.edit("sending to ReMove.BG")
+    await pablo.edit("sending to Remove.bg")
     input_file_name = cool
     files = {
         "image_file": (input_file_name, open(input_file_name, "rb")),
