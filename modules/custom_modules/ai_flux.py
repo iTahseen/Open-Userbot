@@ -5,82 +5,67 @@ import aiohttp
 import asyncio
 import logging
 from PIL import Image
-from pyrogram import filters, Client
+from pyrogram import filters, Client, enums
 from pyrogram.types import Message
 from concurrent.futures import ThreadPoolExecutor
-
 from utils.misc import modules_help, prefix
-from utils.scripts import format_exc, progress
+from utils.scripts import format_exc
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# API details
 HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell"
 HUGGINGFACE_API_TOKEN = "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"
 
 async def query_huggingface(payload):
-    """Asynchronously send a request to the Hugging Face model with a timeout."""
     headers = {"Authorization": f"Bearer {HUGGINGFACE_API_TOKEN}"}
-    timeout = aiohttp.ClientTimeout(total=60)  # Set a timeout of 60 seconds
+    timeout = aiohttp.ClientTimeout(total=60)
+    start_time = time.time()
     try:
         async with aiohttp.ClientSession(timeout=timeout) as session:
             async with session.post(HUGGINGFACE_API_URL, headers=headers, json=payload) as response:
+                fetch_time = int((time.time() - start_time) * 1000)
                 if response.status != 200:
-                    error_message = await response.text()
-                    logger.error(f"API Error - Status {response.status}: {error_message}")
-                    return None
-                return await response.read()
+                    logger.error(f"API Error {response.status}: {await response.text()}")
+                    return None, fetch_time
+                return await response.read(), fetch_time
     except aiohttp.ClientError as e:
         logger.error(f"Network Error: {e}")
-        return None
+        return None, int((time.time() - start_time) * 1000)
 
 async def save_image(image_bytes, path):
-    """Save the image bytes to a file asynchronously."""
     loop = asyncio.get_event_loop()
     with ThreadPoolExecutor() as pool:
-        await loop.run_in_executor(pool, save_image_sync, image_bytes, path)
+        await loop.run_in_executor(pool, lambda: Image.open(io.BytesIO(image_bytes)).save(path))
 
-def save_image_sync(image_bytes, path):
-    """Save the image bytes to a file synchronously (used in thread pool)."""
-    image = Image.open(io.BytesIO(image_bytes))
-    image.save(path)
-
-@Client.on_message(filters.command(["flux", "fl"], prefix) & filters.me)
+@Client.on_message(filters.command(["flux", "fl"], prefix))
 async def imgflux_(client: Client, message: Message):
-    """Handle the /flux command to generate and send an image."""
     prompt = message.text.split(" ", 1)[1] if len(message.command) > 1 else None
     if not prompt:
-        return await message.reply_text("Please provide a prompt for Flux.")
+        usage_message = f"<b>Usage:</b> <code>{prefix}{message.command[0]} [custom prompt]</code>"
+        return await (message.edit_text if message.from_user.is_self else message.reply_text)(usage_message)
+
+    processing_message = await (message.edit_text if message.from_user.is_self else message.reply_text)("Processing...")
 
     try:
-        await message.edit_text("Processing...")
+        image_bytes, fetch_time = await query_huggingface({"inputs": prompt})
+        if not image_bytes:
+            return await processing_message.edit_text("Failed to generate an image.")
 
-        # Generate the image asynchronously
-        image_bytes = await query_huggingface({"inputs": prompt})
-        if image_bytes is None:
-            return await message.edit_text("Failed to generate an image.")
-
-        # Save and send the image asynchronously
         image_path = "hf_flux_gen.jpg"
         await save_image(image_bytes, image_path)
 
-        await message.reply_photo(image_path, progress=progress, progress_args=(message, time.time(), "Uploading image..."))
+        caption = f"**Prompt used:**\n> {prompt}\n\n**Fetching:** {fetch_time} ms"
+        await message.reply_photo(image_path, caption=caption, parse_mode=enums.ParseMode.MARKDOWN)
 
-        # Clean up the saved image file
-        if os.path.exists(image_path):
-            os.remove(image_path)
-
-        # Delete the processing message
-        await message.delete()
-
+        os.remove(image_path)
     except Exception as e:
         logger.error(f"Unexpected Error: {e}")
-        await message.edit_text(format_exc(e))
+        await processing_message.edit_text(format_exc(e))
+    finally:
+        await processing_message.delete()
 
-# Help information for the module
 modules_help["flux"] = {
-    "flux [prompt]*": "Generate an AI image using FLUX",
-    "fl [prompt]*": "Generate an AI image using FLUX"
+    "flux [custom prompt]*": "Generate an AI image using FLUX",
+    "fl [custom prompt]*": "Generate an AI image using FLUX"
 }
