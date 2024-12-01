@@ -22,4 +22,3 @@ rentry
 pySmartDL
 lexica-api
 google-generativeai
-pyht
