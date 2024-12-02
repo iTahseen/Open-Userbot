@@ -10,7 +10,7 @@ NEW_GEMINI_URL = (
 
 async def fetch_response(url: str, query: str, message: Message):
     response_msg = await (
-        message.edit("<code>Thinking...</code>")
+        message.edit("<code>Umm, lemme think...</code>")
         if message.from_user.is_self
         else message.reply("Thinking...")
     )
@@ -31,37 +31,37 @@ async def fetch_response(url: str, query: str, message: Message):
             "Error: Unable to retrieve data or invalid response format."
         )
 
-@Client.on_message(filters.command(["set_askcookie"], prefix))
-async def set_askcookie(_, message: Message):
+@Client.on_message(filters.command(["set_gemini"], prefix))
+async def set_gemini(_, message: Message):
     if len(message.command) < 2:
-        usage_message = "Usage: `set_askcookie <cookie>`"
+        usage_message = "<b>Usage:</b> <code>set_gemini [cookies]</code>"
         if message.from_user.is_self:
             await message.edit(usage_message)
         else:
             await message.reply(usage_message)
         return
     cookie = message.text.split(maxsplit=1)[1]
-    db.set("custom.askck", "cookie", cookie)
-    await message.edit("Cookie set successfully.")
+    db.set("custom.gemini", "cookie", cookie)
+    await message.edit("Gemini cookies set successfully.")
 
-@Client.on_message(filters.command(["ai"], prefix))
+@Client.on_message(filters.command(["gemini", "ai"], prefix))
 async def gemini_image(_, message: Message):
     if len(message.command) < 2:
-        usage_message = "Usage: `ai <query>`"
+        usage_message = "<b>Usage:</b> <code>gemini [prompt]</code>"
         if message.from_user.is_self:
             await message.edit(usage_message)
         else:
             await message.reply(usage_message)
         return
     query = " ".join(message.command[1:])
-    cookie = db.get("custom.askck", "cookie", None)
+    cookie = db.get("custom.gemini", "cookie", None)
     if cookie:
         url = NEW_GEMINI_URL.format(query=query, cookie=cookie)
     else:
-        return await message.edit("No cookie set. Use `set_askcookie` to set one.")
+        return await message.edit("No cookies set. Use <code>set_gemini</code> to set one.")
     await fetch_response(url, query, message)
 
-
-modules_help["ask"] = {
-    "ai [query]*": "Ask anything to Gemini web",
+modules_help["gemini"] = {
+    "gemini [prompt]*": "Ask anything to Gemini AI",
+    "set_gemini [cookies]": "Set the Gemini cookies",
 }
