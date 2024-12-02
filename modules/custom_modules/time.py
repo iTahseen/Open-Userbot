@@ -65,11 +65,13 @@ async def get_city_time(city_name: str = DEFAULT_CITY) -> str:
             weather_summary = "<b>WX:</b> N/A"
 
         return (
-            f"<b>Currently in {city_name.title()}:</b>\n"
+            f"<blockquote><b>Currently in {city_name.title()}:</b></blockquote>\n"
+            f"<blockquote>"
             f"<b>Time:</b> {time_24hr} / {time_12hr}\n"
             f"<b>Date:</b> {date}\n"
             f"<b>TZ:</b> {data['timezoneId']}\n"
             f"{weather_summary}"
+            f"</blockquote>"
         )
     return "<b>Error:</b> <i>Unable to get time for the specified coordinates.</i>"
 
@@ -84,12 +86,14 @@ async def get_weather(city_name: str = DEFAULT_CITY) -> str:
         description = data['weather'][0]['description']
         wind_speed = data['wind']['speed']
         return (
-            f"<b>Weather in {city_name.title()}:</b>\n"
+            f"<blockquote><b>Weather in {city_name.title()}:</b></blockquote>\n"
+            f"<blockquote>"
             f"<b>Temperature:</b> {temp}°C\n"
             f"<b>Feels Like:</b> {feels_like}°C\n"
             f"<b>Humidity:</b> {humidity}%\n"
             f"<b>Description:</b> {description.capitalize()}\n"
             f"<b>Wind Speed:</b> {wind_speed} m/s"
+            f"</blockquote>"
         )
     return "<b>Error:</b> <i>Unable to get weather for the specified city.</i>"
 
