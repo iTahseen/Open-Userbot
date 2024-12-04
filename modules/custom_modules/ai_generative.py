@@ -63,7 +63,7 @@ async def aiseller(_, message):
     else:
         await message.edit_text(f"<b>Usage:</b> <code>{prefix}aiseller [target audience]</code> [Reply to a product image]")
 
-@Client.on_message(filters.command("transcribe", prefix) & filters.me)
+@Client.on_message(filters.command(["transcribe", "trs"], prefix) & filters.me)
 async def transcribe(_, message):
     prompt = message.text.split(maxsplit=1)[1] if len(message.command) > 1 else "Transcribe this audio clip."
     await process_file(message, prompt, model, "audio", "Transcribing audio...", len(message.command) > 1)
