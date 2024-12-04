@@ -13,6 +13,23 @@ WEATHER_API_KEY = "3ec738bcb912c44a805858054ead1efd"
 # Default city
 DEFAULT_CITY = "Los Angeles"
 
+# Weather condition to emoji mapping
+WEATHER_EMOJIS = {
+    "clear sky": "☀️",
+    "few clouds": "🌤️",
+    "scattered clouds": "⛅️",
+    "broken clouds": "☁️",
+    "overcast clouds": "🌥️",
+    "light rain": "🌧️",
+    "moderate rain": "🌧️",
+    "heavy rain": "🌧️",
+    "thunderstorm": "⛈️",
+    "snow": "🌨️",
+    "mist": "🌫️",
+    "haze": "🌫️",
+    "smoke": "💨",
+}
+
 async def fetch_json(url: str, params: dict) -> dict:
     """Fetch JSON data from a URL with provided parameters."""
     async with aiohttp.ClientSession() as session:
@@ -60,7 +77,8 @@ async def get_city_time(city_name: str = DEFAULT_CITY) -> str:
         if 'weather' in weather_data and 'main' in weather_data:
             temp = weather_data['main']['temp']
             description = weather_data['weather'][0]['description']
-            weather_summary = f"<b>WX:</b> {description.capitalize()} {temp}°C"
+            emoji = WEATHER_EMOJIS.get(description.lower(), "")
+            weather_summary = f"<b>WX:</b> {description.capitalize()} {temp}°C {emoji}".strip()
         else:
             weather_summary = "<b>WX:</b> N/A"
 
@@ -85,13 +103,14 @@ async def get_weather(city_name: str = DEFAULT_CITY) -> str:
         humidity = data['main']['humidity']
         description = data['weather'][0]['description']
         wind_speed = data['wind']['speed']
+        emoji = WEATHER_EMOJIS.get(description.lower(), "")
         return (
             f"<blockquote><b>Weather in {city_name.title()}:</b></blockquote>\n"
             f"<blockquote>"
+            f"<b>Condition:</b> {description.capitalize()} {emoji}\n"
             f"<b>Temperature:</b> {temp}°C\n"
             f"<b>Feels Like:</b> {feels_like}°C\n"
             f"<b>Humidity:</b> {humidity}%\n"
-            f"<b>Description:</b> {description.capitalize()}\n"
             f"<b>Wind Speed:</b> {wind_speed} m/s"
             f"</blockquote>"
         )
